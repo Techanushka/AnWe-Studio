@@ -1,0 +1,23 @@
+// size: "" (normal), "s3" (half width), "s4" (wide)
+export const features = [
+  { group: "Edit", title: "Transcript-based Video Editing", desc: "Delete words in the transcript and the matching video disappears.", size: "s4", color: "#8e7dff",
+    points: ["Timestamped transcript", "Select words or sentences to delete", "Video segments removed automatically", "Search inside the transcript", "Restore deleted segments"] },
+  { group: "Edit", title: "Preview & Interactive Timeline", desc: "Scrub, play and jump to any moment.", size: "", color: "#5fe0d1",
+    points: ["Play, pause, seek and speed control", "Clips, cut markers and audio waveform", "Click a word to jump to it", "Audio and video stay in sync"] },
+  { group: "Edit", title: "Undo, Redo & Edit History", desc: "Every cut, trim, caption and crop is recorded.", size: "", color: "#ff8f70",
+    points: ["Undo and redo with shortcuts", "Recover from mistakes", "Projects reopen exactly as you left them"] },
+  { group: "AI", title: "AI Auto-Cleanup", desc: "Find filler words and long silences in one pass.", size: "", color: "#8e7dff",
+    points: ["Detects “umm”, “uh” and pauses", "Suggested cuts highlighted on the timeline", "Accept or reject one or all", "Aggressive, Balanced or Gentle modes"] },
+  { group: "Captions", title: "Animated Captions", desc: "Subtitles generated straight from your transcript.", size: "", color: "#5fe0d1",
+    points: ["Word-by-word highlighting", "Custom font, color, size, position and background", "Live preview synced to playback", "Burned into the final export"] },
+  { group: "AI", title: "AI Highlight & Clip Generator", desc: "One click finds the best moments in a long video.", size: "s3", color: "#ff8f70",
+    points: ["Suggested title, start, end and reason for each clip", "Choose a target length such as 30–60 seconds", "Select clips and approve each one", "Export every clip as its own video"] },
+  { group: "Edit", title: "Speaker-Aware Editing", desc: "See who is talking, and when.", size: "s3", color: "#8e7dff",
+    points: ["Speaker A, Speaker B labels in the transcript", "Color-coded speakers on the timeline", "Filter by speaker and turn answers into clips", "Correct labels by hand"] },
+  { group: "Video", title: "Smart Auto-Reframe", desc: "Turn landscape footage into vertical video.", size: "", color: "#5fe0d1",
+    points: ["16:9 to 9:16, plus 1:1 and landscape presets", "Follows the speaker’s face", "Adjust the crop manually in preview", "Export the reframed video"] },
+  { group: "Captions", title: "Multilingual Subtitle Studio", desc: "Subtitles in Hindi, English and more.", size: "", color: "#ff8f70",
+    points: ["Original transcript is always preserved", "Switch between original and translated tracks", "Edit text and adjust timing", "Export SRT or VTT files"] },
+  { group: "AI", title: "AI Editing Assistant", desc: "Tell the editor what you want in plain language.", size: "", color: "#8e7dff",
+    points: ["“Remove pauses longer than 2 seconds”", "“Create 3 highlights from this lecture”", "Preview proposed changes first", "Nothing applies until you approve"] },
+];
