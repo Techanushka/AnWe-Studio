@@ -1,6 +1,7 @@
 const API_BASE = import.meta.env.VITE_API_BASE_URL || '';
 const GOOGLE_URL = import.meta.env.VITE_GOOGLE_AUTH_URL || '';
 export const DASHBOARD_URL = import.meta.env.VITE_DASHBOARD_URL || '/dashboard';
+export const API_CONFIGURED = Boolean(API_BASE);
 
 async function post(path, body) {
   if (!API_BASE) throw new Error('NOT_CONFIGURED');
@@ -27,6 +28,8 @@ export const authService = {
   login: (email, password, remember) => post('/auth/login', { email, password, remember }),
   signup: (name, email, password) => post('/auth/signup', { name, email, password }),
   forgotPassword: email => post('/auth/forgot-password', { email }),
+  // Backend endpoint still needed: POST /auth/logout (clears the session cookie)
+  logout: () => post('/auth/logout', {}),
   google() {
     if (!GOOGLE_URL) throw new Error('GOOGLE_NOT_CONFIGURED');
     window.location.assign(GOOGLE_URL);

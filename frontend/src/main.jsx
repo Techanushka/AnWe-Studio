@@ -5,6 +5,7 @@ import App from "./App.jsx";
 import "./index.css";
 import "./styles/landing.css";
 import "./styles/auth.css";
+import "./styles/dashboard.css";
 
 createRoot(document.getElementById("root")).render(
   <React.StrictMode>
