@@ -1,8 +1,16 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Modal from './Modal.jsx';
 import Icon from './Icon.jsx';
-import { LANGUAGES, MODELS, isRunning } from '../../hooks/useTranscriber.js';
+import { LANGUAGES, MODELS, SERVER_MODE, isRunning } from '../../hooks/useTranscriber.js';
 import { downloadText, formatTime, toPlainText, toSrt, toTimestampedText } from '../../utils/transcript.js';
+
+// Explains WHY a transcript is empty instead of a generic "no speech" message.
+function emptyReason(stats) {
+  if (stats?.silent) return 'This video’s audio track is silent (or almost silent), so there is nothing to transcribe. Check that the original recording has sound.';
+  if (stats && stats.chunks === 0) return 'No clear speech was found. The audio may be only background noise or music. Try a recording with a clearer voice.';
+  if (stats?.speechSeconds > 0) return 'Speech was detected, but the model returned no text. Choose the spoken language yourself and use the Best in browser model, then press Transcribe again.';
+  return 'We didn’t detect any speech. If the video does have talking, choose the spoken language and try again.';
+}
 
 export default function TranscriptWindow({ file, transcript, options, onOptions, onRestart, onCancel, onClose }) {
   const videoRef = useRef(null);
@@ -12,7 +20,7 @@ export default function TranscriptWindow({ file, transcript, options, onOptions,
   const url = useMemo(() => URL.createObjectURL(file), [file]);
   useEffect(() => () => URL.revokeObjectURL(url), [url]);
 
-  const { status, segments, error, modelProgress, doneSeconds, totalSeconds } = transcript;
+  const { status, segments, error, modelProgress, uploadProgress, doneSeconds, totalSeconds, language, stats } = transcript;
   const running = isRunning(status);
   const baseName = file.name.replace(/\.[^.]+$/, '');
   const activeIndex = segments.findIndex((s) => time >= s.start && time < Math.max(s.end, s.start + 0.5));
@@ -54,19 +62,28 @@ export default function TranscriptWindow({ file, transcript, options, onOptions,
                 {LANGUAGES.map((l) => <option key={l.id} value={l.id}>{l.label}</option>)}
               </select>
             </div>
-            <div className="field">
+            {!SERVER_MODE && <div className="field">
               <label htmlFor="tw-model">Speech model</label>
               <select id="tw-model" value={options.model} disabled={running} onChange={(e) => onOptions({ ...options, model: e.target.value })}>
                 {MODELS.map((m) => <option key={m.id} value={m.id}>{m.label}</option>)}
               </select>
-            </div>
+            </div>}
             <button type="submit" className="btn ghost sm" disabled={running}>Transcribe again</button>
           </form>
-          <p className="tw-privacy">Your video stays on this device. Only the speech model is downloaded, once, and your browser keeps it for next time.</p>
+          <p className="tw-privacy">{SERVER_MODE
+            ? 'Your video is sent to your Anwe transcription server to be transcribed with a large speech model.'
+            : 'Your video stays on this device. Only the speech model is downloaded, once, and your browser keeps it for next time.'}</p>
+          {language && <p className="tw-lang">Language used: <b>{language}</b>{options.language === 'auto' ? ' (detected, then kept for the whole video)' : ''}</p>}
         </div>
 
         <div className="tw-main">
           <div className="tw-status" role="status" aria-live="polite">
+            {status === 'uploading' && (
+              <>
+                <p><i className="spin" aria-hidden="true" />Uploading your video… {uploadProgress}%</p>
+                <div className="progress slim" role="progressbar" aria-label="Upload progress" aria-valuemin={0} aria-valuemax={100} aria-valuenow={uploadProgress}><i style={{ width: `${uploadProgress}%` }} /></div>
+              </>
+            )}
             {status === 'reading' && <p><i className="spin" aria-hidden="true" />Reading the audio from your video…</p>}
             {status === 'loading' && (
               <>
@@ -82,7 +99,7 @@ export default function TranscriptWindow({ file, transcript, options, onOptions,
             )}
             {status === 'done' && (segments.length
               ? <p className="ok"><Icon name="check" size={16} />Transcript ready. Select any line to jump to that moment.</p>
-              : <p className="warn"><Icon name="alert" size={16} />We didn’t detect any speech. If the video does have talking, try choosing the spoken language.</p>)}
+              : <p className="warn"><Icon name="alert" size={16} />{emptyReason(stats)}</p>)}
             {status === 'cancelled' && <p className="warn"><Icon name="alert" size={16} />Transcription cancelled.{segments.length ? ' The lines below are what was finished.' : ''}</p>}
             {status === 'error' && <p className="bad" role="alert"><Icon name="alert" size={16} />{error}</p>}
           </div>

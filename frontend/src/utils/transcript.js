@@ -29,6 +29,7 @@ export function downloadText(filename, text, type = 'text/plain') {
 export function statusLabel(t) {
   switch (t.status) {
     case 'reading': return 'Reading audio…';
+    case 'uploading': return `Uploading video… ${t.uploadProgress || 0}%`;
     case 'loading': return 'Loading speech model…';
     case 'transcribing': return `Transcribing… ${t.totalSeconds ? Math.min(99, Math.round((t.doneSeconds / t.totalSeconds) * 100)) : 0}%`;
     case 'done': return t.segments.length ? `Transcript ready, ${t.segments.length} lines` : 'No speech found';
