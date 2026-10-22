@@ -23,7 +23,7 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# Session middleware is required for OAuth state handling.
+# Required by Google OAuth to preserve state between redirects.
 app.add_middleware(
     SessionMiddleware,
     secret_key=settings.SECRET_KEY,
@@ -32,7 +32,7 @@ app.add_middleware(
     max_age=600,
 )
 
-# Allow requests from configured frontend origins.
+# Allow the frontend to send requests with authentication cookies.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins,
@@ -41,10 +41,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Register centralized exception handlers.
+# Centralized API error handling.
 register_exception_handlers(app)
 
-# Register API routes.
+# Register each API router once.
 app.include_router(auth.router)
 app.include_router(google.router)
 app.include_router(projects.router)

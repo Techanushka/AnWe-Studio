@@ -1,11 +1,27 @@
+
+from pathlib import Path
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
+# Always locate .env relative to this file:
+# backend/app/core/config.py -> backend/.env
+BACKEND_DIR = Path(__file__).resolve().parents[2]
+ENV_FILE = BACKEND_DIR / ".env"
+
+
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+    model_config = SettingsConfigDict(
+        env_file=str(ENV_FILE),
+        env_file_encoding="utf-8-sig",
+        extra="ignore",
+        case_sensitive=True,
+    )
 
     APP_NAME: str = "Anwe Studio API"
     ENV: str = "development"
+
+    # Required settings: these must exist in backend/.env
     SECRET_KEY: str
     MONGODB_URI: str
     MONGODB_DB: str = "anwe_studio"
@@ -16,8 +32,8 @@ class Settings(BaseSettings):
 
     # Tokens / sessions
     ACCESS_TOKEN_MINUTES: int = 15
-    REFRESH_TOKEN_DAYS: int = 30          # "Remember me" ticked
-    SHORT_SESSION_DAYS: int = 1           # "Remember me" not ticked (browser-session cookie)
+    REFRESH_TOKEN_DAYS: int = 30
+    SHORT_SESSION_DAYS: int = 1
     COOKIE_SECURE: bool = False
     COOKIE_SAMESITE: str = "lax"
     COOKIE_DOMAIN: str = ""
@@ -35,7 +51,9 @@ class Settings(BaseSettings):
     # Google OAuth
     GOOGLE_CLIENT_ID: str = ""
     GOOGLE_CLIENT_SECRET: str = ""
-    GOOGLE_REDIRECT_URI: str = "http://localhost:8000/auth/google/callback"
+    GOOGLE_REDIRECT_URI: str = (
+        "http://localhost:8000/auth/google/callback"
+    )
 
     # Email
     SMTP_HOST: str = ""
@@ -47,7 +65,11 @@ class Settings(BaseSettings):
 
     @property
     def cors_origins(self) -> list[str]:
-        return [o.strip() for o in self.CORS_ORIGINS.split(",") if o.strip()]
+        return [
+            origin.strip()
+            for origin in self.CORS_ORIGINS.split(",")
+            if origin.strip()
+        ]
 
 
 settings = Settings()

@@ -78,3 +78,8 @@ __pycache__/
 .DS_Store
 Thumbs.db
 '@ | Add-Content .gitignore
+backend/.env
+backend/.venv/
+backend/uploads/
+frontend/node_modules/
+frontend/.env

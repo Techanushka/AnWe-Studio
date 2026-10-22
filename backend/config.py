@@ -34,6 +34,9 @@ COOKIE_SECURE = os.getenv("COOKIE_SECURE", "1" if FRONTEND_URL.startswith("https
 RESET_TOKEN_MINUTES = 30
 
 VIDEO_EXTENSIONS = {".mp4", ".mov", ".webm"}
+SUPABASE_URL = os.getenv("SUPABASE_URL", "").strip()
+SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY", "").strip()
+SUPABASE_BUCKET = os.getenv("SUPABASE_BUCKET", "videos").strip()
 
 # Optional: Google sign-in (https://console.cloud.google.com/apis/credentials)
 GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID", "")
