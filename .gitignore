@@ -2,11 +2,11 @@
 
 # Dependencies
 node_modules/
-
+.vite
 # Build files
 dist/
 build/
-
+.venv
 # Environment variables and secrets
 .env
 .env.local
@@ -29,3 +29,26 @@ Thumbs.db
 
 # Optional: local test coverage
 coverage/
+
+# Dependencies and generated files
+node_modules/
+**/node_modules/
+.venv/
+**/.venv/
+dist/
+**/dist/
+__pycache__/
+*.pyc
+
+# Environment secrets
+.env
+.env.*
+!.env.example
+
+# Local recovery and repair backups
+recovery-before-restore-*/
+repair-backup-*/
+repair-safety-*/
+src-broken-*/
+.anwe-update-backup-*/
+

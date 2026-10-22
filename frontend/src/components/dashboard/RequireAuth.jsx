@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, Outlet } from 'react-router-dom';
 import { API_CONFIGURED, authService } from '../../services/authService.js';
 import DashboardLayout from './DashboardLayout.jsx';
 
@@ -20,7 +20,7 @@ const PREVIEW_USER = { name: '', email: 'preview@anwe.studio', avatarUrl: '' };
  * If no backend is configured, nobody can sign in, so the dashboard opens in a clearly labelled
  * preview mode instead of redirecting forever or faking a session.
  */
-export default function RequireAuth() {
+export default function RequireAuth({ bare = false }) {
   const [state, setState] = useState({ status: 'checking', user: null });
 
   useEffect(() => {
@@ -37,5 +37,6 @@ export default function RequireAuth() {
     return <div className="db db-boot" role="status" aria-live="polite"><i className="spin big" aria-hidden="true" /><span>Opening your workspace…</span></div>;
   }
   if (state.status === 'out') return <Navigate to="/login" replace />;
+  if (bare) return <Outlet context={{ user: state.user, previewMode: state.status === 'preview' }} />; // full-screen pages (editor)
   return <DashboardLayout user={state.user} previewMode={state.status === 'preview'} />;
 }

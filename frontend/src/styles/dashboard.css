@@ -295,3 +295,5 @@ a.tool:hover{border-color:var(--c)}
 .tw-foot{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-top:18px;padding-top:16px;border-top:1px solid var(--border)}
 .tw-actions{display:flex;gap:8px;flex-wrap:wrap}
 @media(max-width:860px){.tw-body{grid-template-columns:1fr}.tw-list{max-height:40vh}.modal.wide{padding:18px}}
+
+.tw-lang{margin:0;color:var(--muted);font-size:12.5px}.tw-lang b{color:var(--text);text-transform:capitalize}

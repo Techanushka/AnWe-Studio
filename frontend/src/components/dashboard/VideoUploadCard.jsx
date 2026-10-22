@@ -5,6 +5,7 @@ import TranscriptWindow from './TranscriptWindow.jsx';
 import { useDashboard } from './dashboardContext.js';
 import useTranscriber, { DEFAULT_OPTIONS, isRunning } from '../../hooks/useTranscriber.js';
 import { projectService, projectErrorMessage } from '../../services/projectService.js';
+import { putSource } from '../../services/editorStorage';
 import { formatBytes, formatDuration } from '../../utils/format.js';
 import { statusLabel } from '../../utils/transcript.js';
 
@@ -77,6 +78,8 @@ export default function VideoUploadCard() {
     setPhase('uploading'); setProgress(0); setMessage('');
     try {
       const project = await projectService.createProject(file, { duration, signal: controller.signal, onProgress: setProgress, transcript: transcript.status === 'done' ? transcript.segments : null });
+      // Keep a copy of the video + transcript in this browser so /editor/:projectId can open it.
+      try { await putSource({ projectId: project.projectId, name: project.name, file, duration, transcript: transcript.status === 'done' && transcript.segments.length ? transcript.segments : null }); } catch { /* the editor falls back to the server copy */ }
       setProgress(100); setPhase('success');
       notify(previewMode ? 'Local draft created. Nothing was uploaded.' : 'Project created.');
       redirectRef.current = setTimeout(() => navigate(`/editor/${encodeURIComponent(project.projectId)}`), 700);

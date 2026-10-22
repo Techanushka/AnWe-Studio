@@ -7,7 +7,7 @@ export default function WelcomeCard() {
   return (
     <section className="welcome" aria-labelledby="welcome-title">
       <div className="welcome-copy">
-        <h2 id="welcome-title">Your creative workspace</h2>
+        <h2 id="welcome-title">Your creative workspace ✨</h2>
         <p>Turn your videos into stories, one edit at a time.</p>
         <div className="cta-row">
           <Link to="/projects/new" className="btn primary"><Icon name="plus" size={17} />Create New Project</Link>

@@ -6,6 +6,7 @@ import "./index.css";
 import "./styles/landing.css";
 import "./styles/auth.css";
 import "./styles/dashboard.css";
+import "./styles/editor.css";
 
 createRoot(document.getElementById("root")).render(
   <React.StrictMode>

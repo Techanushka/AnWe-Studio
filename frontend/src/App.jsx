@@ -4,7 +4,7 @@ import AuthPage from "./pages/AuthPage.jsx";
 import RequireAuth from "./components/dashboard/RequireAuth.jsx";
 import DashboardPage from "./pages/DashboardPage.jsx";
 import NewProjectPage from "./pages/NewProjectPage.jsx";
-import EditorPlaceholderPage from "./pages/EditorPlaceholderPage.jsx";
+import EditorPage from "./pages/EditorPage";
 
 export default function App() {
   return (
@@ -17,7 +17,11 @@ export default function App() {
       <Route element={<RequireAuth />}>
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/projects/new" element={<NewProjectPage />} />
-        <Route path="/editor/:projectId" element={<EditorPlaceholderPage />} />
+      </Route>
+
+      {/* The editor is full-screen (no sidebar) but uses the same auth guard */}
+      <Route element={<RequireAuth bare />}>
+        <Route path="/editor/:projectId" element={<EditorPage />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />

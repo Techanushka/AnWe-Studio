@@ -18,12 +18,25 @@ const PATHS = {
   alert: 'M12 8v5M12 16.5h.01M12 3 2.5 20h19z',
   menu: 'M4 6h16M4 12h16M4 18h16',
   chevronLeft: 'M15 6l-6 6 6 6',
+  chevronUp: 'M6 15l6-6 6 6',
+  chevronDown: 'M6 9l6 6 6-6',
   edit: 'M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4',
   copy: 'M9 9h10v11H9zM5 15V4h10',
   trash: 'M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3',
   play: 'M8 5v14l11-7z',
   clock: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 7v5l3 2',
-  file: 'M6 3h8l4 4v14H6zM14 3v4h4'
+  file: 'M6 3h8l4 4v14H6zM14 3v4h4',
+  undo: 'M9 14 4 9l5-5M4 9h10.5a5.5 5.5 0 0 1 0 11H11',
+  redo: 'm15 14 5-5-5-5M20 9H9.5a5.5 5.5 0 0 0 0 11H13',
+  pause: 'M8 5v14M16 5v14',
+  volume: 'M4 9v6h4l5 4V5L8 9zM16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12',
+  mute: 'M4 9v6h4l5 4V5L8 9zM17 9.5l4 5M21 9.5l-4 5',
+  zoomIn: 'M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM20 20l-4-4M8.5 11h5M11 8.5v5',
+  zoomOut: 'M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM20 20l-4-4M8.5 11h5',
+  crop: 'M6 2v14a2 2 0 0 0 2 2h14M2 6h14a2 2 0 0 1 2 2v14',
+  scissors: 'M6 9a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM6 21a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM8.1 7.9 20 19M8.1 16.1 20 5',
+  trim: 'M7 4v16M17 4v16M7 12h10M10 9l-3 3 3 3M14 9l3 3-3 3',
+  fit: 'M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5'
 };
 
 export default function Icon({ name, size = 18, className = '' }) {
