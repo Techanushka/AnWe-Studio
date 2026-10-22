@@ -105,3 +105,15 @@ background-image:radial-gradient(55% 50% at 85% 15%,rgba(94,70,200,.4),transpare
 .au .auth-card{ width:100%; }
 }
 .au .mbrand{color:var(--text);text-decoration:none!important}
+
+.au .otp{display:flex;gap:10px;justify-content:center;margin:6px 0 18px}
+.au .otp-box{width:100%;max-width:52px;aspect-ratio:1/1.1;text-align:center;font:700 22px var(--head);background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:14px;padding:0;transition:border-color .2s,box-shadow .2s}
+.au .otp-box:hover{border-color:#3d3978}
+.au .otp-box:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(139,124,255,.25)}
+.au .otp-box:disabled{opacity:.6}
+.au .resend{text-align:center;color:var(--muted);font-size:13.5px;margin:14px 0 0}
+
+.au .card.narrow{max-width:460px;min-height:0;padding:32px 30px}
+.au .narrow .mbrand{display:flex;align-items:center;gap:10px;font:800 20px var(--head);padding:0 0 18px;color:var(--text);text-decoration:none!important}
+.au .narrow h3{font:800 26px var(--head);margin:0 0 4px}
+@media(max-width:860px){.au .card.narrow{padding:26px 22px}}
