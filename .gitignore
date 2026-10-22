@@ -52,3 +52,29 @@ repair-safety-*/
 src-broken-*/
 .anwe-update-backup-*/
 
+cd "C:\Users\user\AnWe-Studio"
+
+@'
+# Dependencies
+frontend/node_modules/
+backend/.venv/
+
+# Environment secrets
+.env
+.env.*
+!.env.example
+backend/.env
+frontend/.env
+
+# Build and cache
+frontend/dist/
+frontend/.vite/
+__pycache__/
+*.py[cod]
+
+# Editors and OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+'@ | Add-Content .gitignore
