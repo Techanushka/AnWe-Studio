@@ -3,7 +3,7 @@ const GOOGLE_URL = import.meta.env.VITE_GOOGLE_AUTH_URL || '';
 export const DASHBOARD_URL = import.meta.env.VITE_DASHBOARD_URL || '/dashboard';
 export const API_CONFIGURED = Boolean(API_BASE);
 
-async function post(path, body) {
+async function post(path, body={}) {
   if (!API_BASE) throw new Error('NOT_CONFIGURED');
   let response;
   try {
@@ -19,6 +19,8 @@ async function post(path, body) {
   if (!response.ok) {
     const error = new Error(data.message || 'REQUEST_FAILED');
     error.status = response.status;
+    error.code = data.code;
+    error.data=data;
     throw error;
   }
   return data;
@@ -27,6 +29,11 @@ async function post(path, body) {
 export const authService = {
   login: (email, password, remember) => post('/auth/login', { email, password, remember }),
   signup: (name, email, password) => post('/auth/signup', { name, email, password }),
+    verifyOtp: (email, code) => post('/auth/verify-otp', { email, code }),
+  resendOtp: email => post('/auth/resend-otp', { email }),
+  resetPassword: (token, password) => post('/auth/reset-password', { token, password }),
+  changePassword: (currentPassword, newPassword) =>
+    post('/auth/change-password', { current_password: currentPassword || null, new_password: newPassword }),
   forgotPassword: email => post('/auth/forgot-password', { email }),
   // Backend endpoint still needed: POST /auth/logout (clears the session cookie)
   logout: () => post('/auth/logout', {}),

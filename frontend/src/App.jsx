@@ -5,6 +5,7 @@ import RequireAuth from "./components/dashboard/RequireAuth.jsx";
 import DashboardPage from "./pages/DashboardPage.jsx";
 import NewProjectPage from "./pages/NewProjectPage.jsx";
 import EditorPlaceholderPage from "./pages/EditorPlaceholderPage.jsx";
+import ResetPasswordPage from "./pages/ResetPasswordPage.jsx";
 
 export default function App() {
   return (
@@ -12,6 +13,7 @@ export default function App() {
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<AuthPage initialMode="login" />} />
       <Route path="/signup" element={<AuthPage initialMode="signup" />} />
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
 
       {/* Authenticated workspace: shared sidebar layout, guarded by RequireAuth */}
       <Route element={<RequireAuth />}>
