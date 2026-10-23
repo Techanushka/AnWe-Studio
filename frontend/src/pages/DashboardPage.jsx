@@ -7,6 +7,7 @@ import ProjectFilters from '../components/dashboard/ProjectFilters.jsx';
 import ProjectGrid from '../components/dashboard/ProjectGrid.jsx';
 import QuickTools from '../components/dashboard/QuickTools.jsx';
 import RecentExports from '../components/dashboard/RecentExports.jsx';
+import StudioInsights from '../components/dashboard/StudioInsights.jsx';
 import { RenameDialog, DeleteDialog } from '../components/dashboard/ProjectDialogs.jsx';
 import { useDashboard } from '../components/dashboard/dashboardContext.js';
 import useProjects from '../hooks/useProjects.js';
@@ -42,7 +43,8 @@ export default function DashboardPage() {
     all: projects.length,
     draft: projects.filter((p) => p.status === 'draft').length,
     processing: projects.filter((p) => p.status === 'processing').length,
-    ready: projects.filter((p) => p.status === 'ready').length
+    ready: projects.filter((p) => p.status === 'ready').length,
+    failed: projects.filter((p) => p.status === 'failed').length
   }), [projects]);
 
   const visible = useMemo(() => {
@@ -65,6 +67,8 @@ export default function DashboardPage() {
         <WelcomeCard />
         <VideoUploadCard />
       </div>
+
+      <StudioInsights projects={projects} />
 
       <section className="block" id="projects" aria-labelledby="projects-title">
         <div className="block-head">

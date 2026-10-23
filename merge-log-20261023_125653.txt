@@ -1,0 +1,147 @@
+﻿Source: C:\Users\user\Downloads\AnWe-Studio-updated\AnWe-Studio
+Destination: C:\Users\user\AnWe-Studio
+Started: 2026-10-23T12:56:53
+
+UNCHANGED: .gitignore
+UNCHANGED: ersuserAnWe-Studio
+ADDED: FEATURES_IMPLEMENTED.md
+UNCHANGED: package-lock.json
+UNCHANGED: README.md
+UNCHANGED: start.ps1
+UNCHANGED: backend\.gitignore
+ADDED: backend\ai_routes.py
+UNCHANGED: backend\auth_routes.py
+UNCHANGED: backend\cloud_storage.py
+UPDATED (backup: C:\Users\user\AnWe-Studio\_merge_backups\20261023_125653\backend\config.py): backend\config.py
+UPDATED (backup: C:\Users\user\AnWe-Studio\_merge_backups\20261023_125653\backend\db.py): backend\db.py
+UNCHANGED: backend\deps.py
+UNCHANGED: backend\files.py
+UPDATED (backup: C:\Users\user\AnWe-Studio\_merge_backups\20261023_125653\backend\main.py): backend\main.py
+UNCHANGED: backend\project_routes.py
+UPDATED (backup: C:\Users\user\AnWe-Studio\_merge_backups\20261023_125653\backend\README.md): backend\README.md
+UNCHANGED: backend\requirements-transcribe.txt
+UNCHANGED: backend\requirements.txt
+UNCHANGED: backend\security.py
+UNCHANGED: backend\smoke_test.py
+UNCHANGED: backend\store.py
+UNCHANGED: backend\test_core.py
+UNCHANGED: backend\transcribe_routes.py
+UPDATED (backup: C:\Users\user\AnWe-Studio\_merge_backups\20261023_125653\backend\app\main.py): backend\app\main.py
+UNCHANGED: backend\app\_init_.py
+UNCHANGED: backend\app\api\deps.py
+UNCHANGED: backend\app\api\_init_.py
+UNCHANGED: backend\app\api\routes\auth.py
+UNCHANGED: backend\app\api\routes\google.py
+UNCHANGED: backend\app\api\routes\init.py
+UNCHANGED: backend\app\api\routes\projects.py
+UNCHANGED: backend\app\api\routes\projects.py.backup
+UNCHANGED: backend\app\core\clock.py
+UPDATED (backup: C:\Users\user\AnWe-Studio\_merge_backups\20261023_125653\backend\app\core\config.py): backend\app\core\config.py
+UNCHANGED: backend\app\core\cookies.py
+UNCHANGED: backend\app\core\exceptions.py
+UNCHANGED: backend\app\core\security.py
+UNCHANGED: backend\app\core\_init_.py
+UNCHANGED: backend\app\db\mongo.py
+UNCHANGED: backend\app\db\_init_.py
+UNCHANGED: backend\app\models\user.py
+UNCHANGED: backend\app\models\_init_.py
+UNCHANGED: backend\app\schemas\auth.py
+UNCHANGED: backend\app\schemas\_init_.py
+UNCHANGED: backend\app\services\auth_service.py
+UNCHANGED: backend\app\services\email_service.py
+UNCHANGED: backend\app\services\otp_service.py
+UNCHANGED: backend\app\services\_init_.py
+UNCHANGED: backend\tests\conftest.py
+UNCHANGED: backend\tests\test_auth.py
+UNCHANGED: backend\tests\_init_.py
+UNCHANGED: frontend\.gitignore
+UNCHANGED: frontend\index.html
+UNCHANGED: frontend\package-lock.json
+UNCHANGED: frontend\package.json
+UNCHANGED: frontend\README.md
+UNCHANGED: frontend\repair-audit.cjs
+UNCHANGED: frontend\repair-build-report.txt
+UNCHANGED: frontend\tsconfig.json
+UPDATED (backup: C:\Users\user\AnWe-Studio\_merge_backups\20261023_125653\frontend\vite.config.js): frontend\vite.config.js
+UNCHANGED: frontend\scripts\test-asr.mjs
+UNCHANGED: frontend\scripts\test-editor.ts
+UNCHANGED: frontend\src\App.jsx
+UNCHANGED: frontend\src\index.css
+UNCHANGED: frontend\src\main.jsx
+UNCHANGED: frontend\src\vite-env.d.ts
+UNCHANGED: frontend\src\components\auth\AuthParts.jsx
+UNCHANGED: frontend\src\components\auth\OtpForm.jsx
+UNCHANGED: frontend\src\components\dashboard\Avatar.jsx
+UNCHANGED: frontend\src\components\dashboard\dashboardContext.js
+UNCHANGED: frontend\src\components\dashboard\DashboardHeader.jsx
+UNCHANGED: frontend\src\components\dashboard\DashboardLayout.jsx
+UNCHANGED: frontend\src\components\dashboard\DashboardSidebar.jsx
+UPDATED (backup: C:\Users\user\AnWe-Studio\_merge_backups\20261023_125653\frontend\src\components\dashboard\Icon.jsx): frontend\src\components\dashboard\Icon.jsx
+UNCHANGED: frontend\src\components\dashboard\Modal.jsx
+UNCHANGED: frontend\src\components\dashboard\ProjectCard.jsx
+UNCHANGED: frontend\src\components\dashboard\ProjectDialogs.jsx
+UPDATED (backup: C:\Users\user\AnWe-Studio\_merge_backups\20261023_125653\frontend\src\components\dashboard\ProjectFilters.jsx): frontend\src\components\dashboard\ProjectFilters.jsx
+UNCHANGED: frontend\src\components\dashboard\ProjectGrid.jsx
+UNCHANGED: frontend\src\components\dashboard\QuickTools.jsx
+UNCHANGED: frontend\src\components\dashboard\RecentExports.jsx
+UNCHANGED: frontend\src\components\dashboard\RequireAuth.jsx
+ADDED: frontend\src\components\dashboard\StudioInsights.jsx
+UNCHANGED: frontend\src\components\dashboard\TranscriptWindow.jsx
+UNCHANGED: frontend\src\components\dashboard\VideoUploadCard.jsx
+UNCHANGED: frontend\src\components\dashboard\WelcomeCard.jsx
+UNCHANGED: frontend\src\components\editor\CropPanel.tsx
+UNCHANGED: frontend\src\components\editor\CutsPanel.tsx
+UNCHANGED: frontend\src\components\editor\editor.test.tsx
+UNCHANGED: frontend\src\components\editor\EditorTopBar.tsx
+UNCHANGED: frontend\src\components\editor\HistoryPanel.tsx
+UNCHANGED: frontend\src\components\editor\SidePanel.tsx
+UNCHANGED: frontend\src\components\editor\Timeline.tsx
+UNCHANGED: frontend\src\components\editor\TranscribeGate.tsx
+UNCHANGED: frontend\src\components\editor\TranscriptPanel.tsx
+UNCHANGED: frontend\src\components\editor\VideoPreview.tsx
+UNCHANGED: frontend\src\components\landing\EditorPreview.jsx
+UNCHANGED: frontend\src\components\landing\FeatureCard.jsx
+UNCHANGED: frontend\src\components\landing\Features.jsx
+UNCHANGED: frontend\src\components\landing\FinalCta.jsx
+UNCHANGED: frontend\src\components\landing\Footer.jsx
+UNCHANGED: frontend\src\components\landing\Hero.jsx
+UNCHANGED: frontend\src\components\landing\Marquee.jsx
+UNCHANGED: frontend\src\components\landing\Navbar.jsx
+UNCHANGED: frontend\src\components\landing\ScrollProgress.jsx
+UNCHANGED: frontend\src\hooks\useMenu.js
+UNCHANGED: frontend\src\hooks\usePlaybackEngine.ts
+UNCHANGED: frontend\src\hooks\useProjects.js
+UNCHANGED: frontend\src\hooks\useReveal.js
+UNCHANGED: frontend\src\hooks\useTranscriber.js
+UNCHANGED: frontend\src\hooks\useWaveform.ts
+UNCHANGED: frontend\src\pages\AuthPage.jsx
+UPDATED (backup: C:\Users\user\AnWe-Studio\_merge_backups\20261023_125653\frontend\src\pages\DashboardPage.jsx): frontend\src\pages\DashboardPage.jsx
+UNCHANGED: frontend\src\pages\EditorPage.tsx
+UNCHANGED: frontend\src\pages\LandingPage.jsx
+UNCHANGED: frontend\src\pages\NewProjectPage.jsx
+UNCHANGED: frontend\src\pages\ResetPasswordPage.jsx
+UNCHANGED: frontend\src\services\authService.js
+UNCHANGED: frontend\src\services\editorService.ts
+UPDATED (backup: C:\Users\user\AnWe-Studio\_merge_backups\20261023_125653\frontend\src\services\editorStorage.ts): frontend\src\services\editorStorage.ts
+UPDATED (backup: C:\Users\user\AnWe-Studio\_merge_backups\20261023_125653\frontend\src\services\projectService.js): frontend\src\services\projectService.js
+UNCHANGED: frontend\src\services\transcribeApi.js
+UNCHANGED: frontend\src\store\editorStore.ts
+UNCHANGED: frontend\src\store\playheadStore.ts
+UNCHANGED: frontend\src\styles\auth.css
+UPDATED (backup: C:\Users\user\AnWe-Studio\_merge_backups\20261023_125653\frontend\src\styles\dashboard.css): frontend\src\styles\dashboard.css
+UNCHANGED: frontend\src\styles\editor.css
+UNCHANGED: frontend\src\styles\landing.css
+UNCHANGED: frontend\src\types\editor.ts
+UNCHANGED: frontend\src\utils\audio.js
+UNCHANGED: frontend\src\utils\editModel.ts
+UNCHANGED: frontend\src\utils\format.js
+UNCHANGED: frontend\src\utils\transcript.js
+UNCHANGED: frontend\src\utils\waveform.ts
+UNCHANGED: frontend\src\utils\asr\language.js
+UNCHANGED: frontend\src\utils\asr\normalize.js
+UNCHANGED: frontend\src\utils\asr\postprocess.js
+UNCHANGED: frontend\src\utils\asr\vad.js
+UNCHANGED: frontend\src\workers\transcribeWorker.js
+
+Finished: 2026-10-23T12:56:54
+Added=3 Updated=13 Unchanged=124 Failed=0 WhatIfOnly=False

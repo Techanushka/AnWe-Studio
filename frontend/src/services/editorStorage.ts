@@ -5,6 +5,8 @@
  */
 import type { ProjectRecord, SavedHistory, Segment } from '../types/editor';
 
+const API_BASE = import.meta.env.VITE_API_BASE_URL || ''; 
+
 const DB_NAME = 'anwe-studio';
 const STORE = 'projectSources';
 
@@ -55,6 +57,19 @@ export async function patchSource(projectId: string, patch: Partial<ProjectRecor
 }
 
 export const saveEditState = (projectId: string, editState: SavedHistory) => patchSource(projectId, { editState });
-export const saveTranscript = (projectId: string, transcript: Segment[]) => patchSource(projectId, { transcript, edits: null, editState: null });
+export async function saveTranscript(projectId: string, transcript: Segment[]): Promise<void> {
+  await patchSource(projectId, { transcript, edits: null, editState: null });
+  // Persist the transcript on the server too, so dashboard AI tools can access it across devices.
+  if (API_BASE && !projectId.startsWith('local-')) {
+    const response = await fetch(`${API_BASE}/projects/${encodeURIComponent(projectId)}/transcript`, {
+      method: 'PUT', credentials: 'include', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ segments: transcript, duration: transcript.reduce((max, segment) => Math.max(max, Number(segment.end) || 0), 0) })
+    });
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
+      throw new Error(data.detail || 'Could not save transcript to the server.');
+    }
+  }
+}
 export const savePeaks = (projectId: string, peaks: Uint8Array) => patchSource(projectId, { peaks });
 export const removeSource = (projectId: string): Promise<undefined> => run('readwrite', (s) => s.delete(projectId)) as Promise<undefined>;

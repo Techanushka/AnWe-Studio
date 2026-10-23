@@ -39,6 +39,13 @@ CREATE TABLE IF NOT EXISTS projects (
   updated_at TEXT NOT NULL,
   state_updated_at TEXT
 );
+CREATE TABLE IF NOT EXISTS project_ai (
+  project_id TEXT PRIMARY KEY REFERENCES projects(id) ON DELETE CASCADE,
+  user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  summary_json TEXT,
+  edits_json TEXT NOT NULL DEFAULT '[]',
+  updated_at TEXT NOT NULL
+);
 CREATE INDEX IF NOT EXISTS idx_projects_user ON projects(user_id, updated_at);
 CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id);
 """

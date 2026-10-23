@@ -2,7 +2,8 @@ const FILTERS = [
   { id: 'all', label: 'All Projects' },
   { id: 'draft', label: 'Drafts' },
   { id: 'processing', label: 'Processing' },
-  { id: 'ready', label: 'Completed' }
+  { id: 'ready', label: 'Completed' },
+  { id: 'failed', label: 'Failed' }
 ];
 
 export default function ProjectFilters({ filter, onFilter, sort, onSort, counts }) {

@@ -55,3 +55,7 @@ WHISPER_MODEL = os.getenv("WHISPER_MODEL", "small")
 WHISPER_DEVICE = os.getenv("WHISPER_DEVICE", "auto")
 WHISPER_COMPUTE = os.getenv("WHISPER_COMPUTE", "auto")
 PRELOAD = os.getenv("PRELOAD", "0") == "1"
+
+# Optional AI Studio provider. The API key remains server-side.
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "").strip()
+GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash").strip() or "gemini-2.5-flash"

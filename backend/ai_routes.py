@@ -1,0 +1,219 @@
+"""Per-user dashboard analytics and AI-assisted transcript tools for the SQLite API."""
+import json
+import re
+from datetime import datetime, timezone
+
+import httpx
+from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel, Field
+
+import config
+import store
+from db import connect
+from deps import require_user
+
+router = APIRouter(tags=["AI Studio"])
+
+
+def _now():
+    return datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
+
+
+def _owned_transcript(user: dict, project_id: str):
+    row = store.get_project_row(user["id"], project_id)
+    if not row:
+        raise HTTPException(404, "Project not found.")
+    try:
+        segments = json.loads(row["transcript"]) if row["transcript"] else []
+    except (json.JSONDecodeError, TypeError):
+        segments = []
+    segments = [s for s in segments if isinstance(s, dict) and str(s.get("text", "")).strip()]
+    if not segments:
+        raise HTTPException(422, "This project has no saved transcript yet. Open the editor and finish transcription first.")
+    return row, segments
+
+
+def _transcript_text(segments: list[dict], limit: int = 45000) -> str:
+    lines = []
+    for s in segments:
+        try:
+            start, end = float(s.get("start") or 0), float(s.get("end") or 0)
+        except (TypeError, ValueError):
+            start, end = 0, 0
+        speaker = s.get("speaker") or s.get("speaker_label")
+        prefix = f"[{start:.2f}-{end:.2f}s]" + (f" {speaker}:" if speaker else "")
+        lines.append(f"{prefix} {str(s.get('text', '')).strip()}")
+    return "\n".join(lines)[:limit]
+
+
+async def _gemini(prompt: str):
+    if not config.GEMINI_API_KEY:
+        return None
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/{config.GEMINI_MODEL}:generateContent"
+    try:
+        async with httpx.AsyncClient(timeout=45) as client:
+            response = await client.post(url, params={"key": config.GEMINI_API_KEY}, json={
+                "contents": [{"parts": [{"text": prompt}]}],
+                "generationConfig": {"temperature": 0.2},
+            })
+            response.raise_for_status()
+            data = response.json()
+            return data["candidates"][0]["content"]["parts"][0]["text"]
+    except (httpx.HTTPError, KeyError, IndexError, TypeError) as exc:
+        raise HTTPException(502, "The AI provider failed. Check GEMINI_API_KEY and GEMINI_MODEL.") from exc
+
+
+def _json_response(raw: str):
+    cleaned = re.sub(r"^```(?:json)?\s*|\s*```$", "", raw.strip(), flags=re.I)
+    try:
+        value = json.loads(cleaned)
+    except json.JSONDecodeError as exc:
+        raise HTTPException(502, "The AI returned invalid structured data. Please retry.") from exc
+    if not isinstance(value, dict):
+        raise HTTPException(502, "The AI returned an unexpected response format.")
+    return value
+
+
+def _fallback_summary(segments):
+    full_text = " ".join(str(s.get("text", "")).strip() for s in segments)
+    sentences = [s.strip() for s in re.split(r"(?<=[.!?])\s+|\n+", full_text) if len(s.strip()) > 20]
+    ranked = sorted(sentences, key=lambda s: len(s.split()), reverse=True)
+    return {
+        "summary": " ".join(sentences[:4])[:1800] or full_text[:700] or "No transcript text is available.",
+        "key_takeaways": [s[:240] for s in sentences[:5]],
+        "important_quotes": [s[:240] for s in ranked[:3]],
+        "action_items": [], "decisions": [], "provider": "local-extractive",
+    }
+
+
+class ChatIn(BaseModel):
+    question: str = Field(min_length=1, max_length=2000)
+
+
+class EditCommandIn(BaseModel):
+    command: str = Field(min_length=3, max_length=1200)
+
+
+class ApplyEditIn(BaseModel):
+    proposal: dict
+
+
+@router.get("/dashboard/analytics")
+def analytics(user: dict = Depends(require_user)):
+    projects = store.list_projects(user["id"])
+    total_seconds = sum(max(0, float(p.get("duration") or 0)) for p in projects)
+    completed = sum(p.get("status") == "ready" for p in projects)
+    pending = sum(p.get("status") == "draft" for p in projects)
+    # Current schema has no background-job queue, so failed/processing are zero until job tracking is added.
+    return {
+        "total_projects": len(projects), "completed_transcriptions": completed,
+        "duration_seconds_processed": round(total_seconds),
+        "media_hours_processed": round(total_seconds / 3600, 2),
+        "estimated_time_saved_minutes": round((total_seconds / 60) * 2),
+        "time_saved_assumption": "Estimate assumes 2 minutes saved per media minute; it is not a measured result.",
+        "completed": completed, "processing": 0, "pending": pending, "failed": 0,
+        "job_tracking_note": "This version does not yet persist background transcription job failures or live processing states.",
+    }
+
+
+@router.post("/projects/{project_id}/ai/summary")
+async def summary(project_id: str, user: dict = Depends(require_user)):
+    row, segments = _owned_transcript(user, project_id)
+    transcript = _transcript_text(segments)
+    prompt = "Return ONLY valid JSON with keys summary (string), key_takeaways (array of strings), important_quotes (array of strings), action_items (array of strings), decisions (array of strings). Use only transcript evidence; do not invent facts.\nTRANSCRIPT:\n" + transcript
+    raw = await _gemini(prompt)
+    result = _fallback_summary(segments) if raw is None else _json_response(raw)
+    result["provider"] = "gemini" if raw is not None else "local-extractive"
+    result["project_id"] = project_id
+    result["generated_at"] = _now()
+    with connect() as conn:
+        conn.execute("""INSERT INTO project_ai(project_id,user_id,summary_json,edits_json,updated_at)
+            VALUES(?,?,?,?,?) ON CONFLICT(project_id) DO UPDATE SET summary_json=excluded.summary_json, updated_at=excluded.updated_at""",
+            (project_id, user["id"], json.dumps(result, ensure_ascii=False), "[]", _now()))
+    return result
+
+
+@router.post("/projects/{project_id}/ai/chat")
+async def chat(project_id: str, body: ChatIn, user: dict = Depends(require_user)):
+    _, segments = _owned_transcript(user, project_id)
+    transcript = _transcript_text(segments)
+    prompt = ("Answer using ONLY the transcript. If the answer is absent, say so. Cite timestamps as [00:12-00:18]. Be concise.\nTRANSCRIPT:\n" + transcript + "\nQUESTION:\n" + body.question)
+    raw = await _gemini(prompt)
+    if raw is not None:
+        answer, provider = raw.strip(), "gemini"
+    else:
+        terms = [w.lower() for w in re.findall(r"[\w'-]+", body.question) if len(w) > 2]
+        matches = []
+        for segment in segments:
+            text = str(segment.get("text", ""))
+            score = sum(term in text.lower() for term in terms)
+            if score:
+                matches.append((score, segment))
+        matches.sort(key=lambda x: x[0], reverse=True)
+        excerpts = []
+        for _, s in matches[:5]:
+            excerpts.append(f"[{float(s.get('start') or 0):.0f}s–{float(s.get('end') or 0):.0f}s] {str(s.get('text','')).strip()}")
+        answer = ("I found these matching excerpts (local keyword search, not an LLM answer):\n\n" + "\n".join(excerpts)) if excerpts else "I couldn't find a clear matching passage with keyword search. Configure GEMINI_API_KEY for semantic questions or try different keywords."
+        provider = "local-keyword-search"
+    return {"answer": answer, "provider": provider, "project_id": project_id}
+
+
+def _local_proposal(command: str, segments: list[dict]):
+    lower = command.lower()
+    operations = []
+    match = re.search(r"(?:pause|silence|gap)s?.{0,30}?(\d+(?:\.\d+)?)\s*(?:seconds?|secs?|s\b)", lower)
+    if match and any(word in lower for word in ("remove", "cut", "trim", "delete")):
+        threshold = float(match.group(1)); cuts = []
+        ordered = sorted(segments, key=lambda s: float(s.get("start") or 0))
+        for left, right in zip(ordered, ordered[1:]):
+            a, b = float(left.get("end") or 0), float(right.get("start") or 0)
+            if b - a > threshold: cuts.append({"start": round(a, 3), "end": round(b, 3), "reason": f"Silence longer than {threshold:g}s"})
+        operations.append({"type": "remove_pauses", "threshold_seconds": threshold, "cuts": cuts, "count": len(cuts)})
+    if any(w in lower for w in ("highlight", "highlights", "clip", "key moment")):
+        m = re.search(r"\b(\d{1,2})\b", lower); count = min(10, max(1, int(m.group(1)))) if m else 3
+        ranked = sorted(segments, key=lambda s: len(str(s.get("text", "")).split()), reverse=True)
+        items = [{"start": float(s.get("start") or 0), "end": float(s.get("end") or 0), "text": str(s.get("text", ""))[:300]} for s in ranked[:count]]
+        operations.append({"type": "highlights", "items": items, "count": len(items)})
+    if any(w in lower for w in ("vertical", "9:16", "reel", "shorts")):
+        operations.append({"type": "aspect_ratio", "ratio": "9:16", "note": "Crop recommendation only; this action does not render a new video file."})
+    if "hindi" in lower and any(w in lower for w in ("subtitle", "translate", "caption")):
+        operations.append({"type": "translate_subtitles", "target_language": "Hindi", "requires_ai_provider": True, "note": "Configure GEMINI_API_KEY to generate translated subtitle text."})
+    if not operations:
+        operations.append({"type": "editor_suggestion", "note": "No safe local operation matched. Try removing pauses, creating highlights, generating Hindi subtitles, or making the clip vertical."})
+    return {"title": "Proposed edit plan", "command": command, "operations": operations, "requires_approval": True, "provider": "local-rule-parser"}
+
+
+@router.post("/projects/{project_id}/ai/edit-proposal")
+async def edit_proposal(project_id: str, body: EditCommandIn, user: dict = Depends(require_user)):
+    _, segments = _owned_transcript(user, project_id)
+    prompt = ("Convert the user's editing request into safe JSON: {title:string,operations:[...]}. Return ONLY JSON. "
+              "Allowed operation types: remove_pauses (threshold_seconds and candidate cuts), highlights (items with start/end/text), "
+              "translate_subtitles (target_language), aspect_ratio (ratio), editor_suggestion. Never claim the video has rendered. "
+              "Do not execute changes; this is a preview proposal.\nCOMMAND:\n" + body.command + "\nTRANSCRIPT:\n" + _transcript_text(segments, 26000))
+    raw = await _gemini(prompt)
+    result = _local_proposal(body.command, segments) if raw is None else _json_response(raw)
+    if not isinstance(result.get("operations"), list):
+        raise HTTPException(502, "The AI proposal did not contain an operations list.")
+    result.update({"command": body.command, "requires_approval": True, "provider": "gemini" if raw is not None else "local-rule-parser", "proposal_id": __import__("uuid").uuid4().hex})
+    return result
+
+
+@router.post("/projects/{project_id}/ai/apply-edit")
+def apply_edit(project_id: str, body: ApplyEditIn, user: dict = Depends(require_user)):
+    row = store.get_project_row(user["id"], project_id)
+    if not row:
+        raise HTTPException(404, "Project not found.")
+    proposal = body.proposal
+    operations = proposal.get("operations")
+    allowed = {"remove_pauses", "highlights", "translate_subtitles", "aspect_ratio", "editor_suggestion"}
+    if not isinstance(operations, list) or not operations or len(operations) > 20 or any(not isinstance(op, dict) or op.get("type") not in allowed for op in operations):
+        raise HTTPException(422, "The proposal contains unsupported operations.")
+    record = {"proposal_id": str(proposal.get("proposal_id", "")), "command": str(proposal.get("command", ""))[:1200], "operations": operations, "approved_at": _now()}
+    with connect() as conn:
+        existing = conn.execute("SELECT summary_json, edits_json FROM project_ai WHERE project_id=? AND user_id=?", (project_id, user["id"])).fetchone()
+        edits = json.loads(existing["edits_json"]) if existing and existing["edits_json"] else []
+        edits.append(record); edits = edits[-50:]
+        conn.execute("""INSERT INTO project_ai(project_id,user_id,summary_json,edits_json,updated_at) VALUES(?,?,?,?,?)
+            ON CONFLICT(project_id) DO UPDATE SET edits_json=excluded.edits_json, updated_at=excluded.updated_at""",
+            (project_id, user["id"], existing["summary_json"] if existing else None, json.dumps(edits, ensure_ascii=False), _now()))
+    return {"ok": True, "saved_edit": record, "message": "Approved edit plan saved to this project. Video rendering/cropping and translated subtitle generation still require the media export pipeline."}

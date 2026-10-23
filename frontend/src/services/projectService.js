@@ -44,7 +44,7 @@ export function projectErrorMessage(error) {
 
 const STATUS_MAP = {
   draft: 'draft', processing: 'processing', queued: 'processing', transcribing: 'processing',
-  ready: 'ready', completed: 'ready', complete: 'ready', done: 'ready'
+  ready: 'ready', completed: 'ready', complete: 'ready', done: 'ready', failed: 'failed', error: 'failed', pending: 'draft'
 };
 
 export function normalizeProject(raw) {

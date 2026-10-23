@@ -1,4 +1,4 @@
-
+﻿
 """
 Anwe Studio API (FastAPI).
 
@@ -23,6 +23,7 @@ Projects:
 
 Other:
   GET /exports
+  GET /dashboard/analytics; POST /projects/{id}/ai/{summary,chat,edit-proposal,apply-edit}
   POST /transcribe
   GET /health
 
@@ -43,6 +44,7 @@ import config
 from auth_routes import router as auth_router
 from db import init_db
 from project_routes import router as project_router
+from ai_routes import router as ai_router
 from transcribe_routes import (
     get_model,
     router as transcribe_router,
@@ -50,7 +52,6 @@ from transcribe_routes import (
 )
 
 # Google OAuth router from the newer backend package.
-from app.api.routes import google as google_routes
 from app.core.config import settings
 
 
@@ -117,17 +118,15 @@ async def validation_error(
     )
 
 
-# Existing routes — keep these for the current auth and Supabase storage.
+# Existing routes â€” keep these for the current auth and Supabase storage.
 app.include_router(auth_router)
 app.include_router(project_router)
+app.include_router(ai_router)
 app.include_router(transcribe_router)
 
 # Google OAuth routes:
 # GET /auth/google/login
 # GET /auth/google/callback
-app.include_router(google_routes.router)
-
-
 @app.get("/health", tags=["meta"])
 def health():
     return {
@@ -135,3 +134,4 @@ def health():
         "transcription": whisper_available(),
         "model": config.WHISPER_MODEL,
     }
+
