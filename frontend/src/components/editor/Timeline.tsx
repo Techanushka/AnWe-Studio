@@ -3,6 +3,8 @@ import type { KeyboardEvent, PointerEvent as ReactPointerEvent } from 'react';
 import Icon from '../dashboard/Icon.jsx';
 import { useEditorStore } from '../../store/editorStore';
 import { usePlayhead } from '../../store/playheadStore';
+import { useCleanupStore } from '../../store/cleanupStore'; // [AI] Feature 4
+import { useHighlightStore } from '../../store/highlightStore'; // [AI] Feature 6
 import { MIN_TRIM, cutRanges, editedToSource, sourceToEdited, totalLength, trimRanges } from '../../utils/editModel';
 import { peakBetween } from '../../utils/waveform';
 import { formatTime } from '../../utils/transcript.js';
@@ -70,6 +72,9 @@ export default function Timeline({ onSeek, peaks, waveStatus, waveMessage }: Pro
   const keep = useEditorStore((s) => s.keep);
   const runs = useEditorStore((s) => s.runs);
   const trim = useEditorStore((s) => s.doc.trim);
+  const gaps = useEditorStore((s) => s.doc.gaps); // [AI] accepted cleanup pauses
+  const suggestions = useCleanupStore((s) => s.suggestions); // [AI] pending cleanup suggestions
+  const clips = useHighlightStore((s) => s.clips); // [AI] highlight clips
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const innerRef = useRef<HTMLDivElement>(null);
@@ -105,7 +110,7 @@ export default function Timeline({ onSeek, peaks, waveStatus, waveMessage }: Pro
   const full: Range = { start: 0, end: duration };
   const curTrim = trim ?? full;
   const shownTrim: Range | null = drag ? { ...curTrim, [drag.side]: drag.t } : trim;
-  const deletedCuts = useMemo(() => cutRanges(runs, duration), [runs, duration]);
+  const deletedCuts = useMemo(() => cutRanges([...runs, ...gaps], duration), [runs, gaps, duration]); // [AI] + gaps
   const trimmedZones = useMemo(() => trimRanges(shownTrim, duration), [shownTrim, duration]);
 
   // ---- canvases (ruler + waveforms) ----
@@ -259,6 +264,14 @@ export default function Timeline({ onSeek, peaks, waveStatus, waveMessage }: Pro
               <canvas ref={srcWaveRef} aria-hidden="true" />
               {deletedCuts.map((c) => (
                 <div key={`c${c.start}`} className="tl-cut" style={{ left: c.start * pps, width: Math.max(2, (c.end - c.start) * pps) }} title={`Deleted ${formatTime(c.start)}–${formatTime(c.end)} (${(c.end - c.start).toFixed(1)}s)`} />
+              ))}
+              {/* [AI] Feature 4: pending cleanup suggestions */}
+              {suggestions.map((s) => (
+                <div key={s.id} className={`tl-suggest ${s.kind}`} style={{ left: s.start * pps, width: Math.max(3, (s.end - s.start) * pps) }} title={`${s.label}: suggested cut`} />
+              ))}
+              {/* [AI] Feature 6: highlight clips */}
+              {clips.map((c) => (
+                <div key={c.id} className={`tl-hl${c.selected ? ' on' : ''}`} style={{ left: c.start * pps, width: Math.max(3, (c.end - c.start) * pps) }} title={c.title} />
               ))}
               {trimmedZones.map((c) => (
                 <div key={`t${c.start}`} className="tl-trimmed" style={{ left: c.start * pps, width: Math.max(2, (c.end - c.start) * pps) }} title="Trimmed away" />

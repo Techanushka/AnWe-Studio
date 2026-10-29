@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react';
 export default defineConfig({
   plugins: [react()],
   worker: { format: 'es' }, // the speech-to-text Web Worker is an ES module
+  optimizeDeps: { exclude: ['@ffmpeg/ffmpeg', '@ffmpeg/util'] }, // [AI] FFmpeg.wasm must not be pre-bundled
   server: {
     port: 5173,
     open: true,

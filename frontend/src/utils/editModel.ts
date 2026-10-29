@@ -12,7 +12,8 @@ const LETTERS = /[^\p{L}\p{M}\p{N}]/gu;
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
 export const MIN_TRIM = 0.2; // seconds of video that must remain between the trim handles
 
-export const EMPTY_DOC: EditDoc = Object.freeze({ deleted: new Set<number>(), captions: {}, trim: null, crop: null });
+// [AI] added `gaps: []`
+export const EMPTY_DOC: EditDoc = Object.freeze({ deleted: new Set<number>(), captions: {}, trim: null, crop: null, gaps: [] });
 
 // ---------------------------------------------------------------------------------------------- words
 interface TimedText { text: string; start: number; end: number; estimated?: boolean }
@@ -121,9 +122,9 @@ export function trimRanges(trim: Range | null, duration: number): Range[] {
   if (duration > 0 && trim.end < duration - 0.01) out.push({ start: trim.end, end: duration });
   return out;
 }
-/** Deleted words + trim = everything the edited video leaves out. */
-export const computeCuts = (runs: Range[], trim: Range | null, duration: number): Range[] =>
-  mergeRanges([...runs, ...trimRanges(trim, duration)], duration);
+/** Deleted words + trim (+ [AI] cleanup pauses) = everything the edited video leaves out. */
+export const computeCuts = (runs: Range[], trim: Range | null, duration: number, gaps: ReadonlyArray<Range> = []): Range[] =>
+  mergeRanges([...runs, ...gaps, ...trimRanges(trim, duration)], duration);
 
 export function keepRanges(cuts: Range[], duration: number): Range[] {
   const out: Range[] = [];
@@ -240,6 +241,9 @@ export function sameDoc(a: EditDoc, b: EditDoc): boolean {
   const ka = Object.keys(a.captions), kb = Object.keys(b.captions);
   if (ka.length !== kb.length || ka.some((k) => a.captions[Number(k)] !== b.captions[Number(k)])) return false;
   const t = (x: Range | null) => (x ? `${x.start.toFixed(3)}-${x.end.toFixed(3)}` : '');
+  // [AI] cleanup pauses count as a change (otherwise a pauses-only cleanup would be ignored)
+  const g = (x: ReadonlyArray<Range> | undefined) => (x ?? []).map((r) => `${r.start.toFixed(3)}-${r.end.toFixed(3)}`).join(',');
+  if (g(a.gaps) !== g(b.gaps)) return false;
   return t(a.trim) === t(b.trim) && sameCrop(a.crop, b.crop);
 }
 
@@ -257,7 +261,8 @@ export const serializeDoc = (doc: EditDoc): SerializedDoc => ({
   deleted: deletedToRanges(doc.deleted),
   captions: Object.fromEntries(Object.entries(doc.captions)),
   trim: doc.trim ? { ...doc.trim } : null,
-  crop: doc.crop ? { ...doc.crop } : null
+  crop: doc.crop ? { ...doc.crop } : null,
+  gaps: (doc.gaps ?? []).map((r) => ({ ...r })) // [AI]
 });
 
 /** Rebuilds a document from saved JSON, dropping anything that doesn't fit the current transcript. */
@@ -276,7 +281,10 @@ export function deserializeDoc(s: Partial<SerializedDoc> | null | undefined, wor
   const trim = t && Number.isFinite(t.start) && Number.isFinite(t.end) && t.end > t.start ? { start: t.start, end: t.end } : null;
   const c = s?.crop;
   const crop = c && ASPECTS.some((a) => a.id === c.aspect) && Number.isFinite(c.zoom) ? { aspect: c.aspect, zoom: c.zoom, panX: c.panX ?? 0.5, panY: c.panY ?? 0.5 } : null;
-  return { deleted, captions, trim, crop };
+  // [AI] cleanup pauses (missing in projects saved before Feature 4 -> empty list)
+  const gaps: Range[] = [];
+  for (const r of s?.gaps ?? []) if (r && Number.isFinite(r.start) && Number.isFinite(r.end) && r.end > r.start) gaps.push({ start: r.start, end: r.end });
+  return { deleted, captions, trim, crop, gaps };
 }
 
 // ---------------------------------------------------------------------------------------------- exports
@@ -300,7 +308,7 @@ export function editedSegments(words: Word[], doc: EditDoc, cuts: Range[]): Segm
 /** Edit decision list: what a renderer (e.g. FFmpeg) needs to produce the edited video. */
 export function buildEditList(args: { projectId: string; words: Word[]; doc: EditDoc; duration: number; videoSize?: VideoSize | null }) {
   const { projectId, words, doc, duration, videoSize } = args;
-  const cuts = computeCuts(deletedRuns(words, doc.deleted), doc.trim, duration);
+  const cuts = computeCuts(deletedRuns(words, doc.deleted), doc.trim, duration, doc.gaps); // [AI] gaps
   const keep = keepRanges(cuts, duration);
   const captions = Object.entries(doc.captions).map(([k, text]) => {
     const w = words[Number(k)];

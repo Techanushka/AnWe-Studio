@@ -141,7 +141,15 @@ export default function EditorPage() {
           : <section className="ed-left card"><TranscribeGate file={state.project.file} onDone={onTranscribed} /></section>}
         <aside className="ed-right">
           <VideoPreview src={src} videoRef={videoRef} />
-          {hasTranscript && <SidePanel onSeek={seek} initial={panel === 'history' ? 'history' : 'cuts'} />}
+          {hasTranscript && (
+            <SidePanel
+              onSeek={seek}
+              initial={panel === 'history' ? 'history' : 'cuts'}
+              projectId={projectId} /* [AI] new prop */
+              name={state.project.name} /* [AI] new prop */
+              source={{ file: state.project.file, url: state.project.videoUrl }} /* [AI] new prop: where the exporter reads the video from */
+            />
+          )}
         </aside>
         <div className="ed-bottom" ref={timelineRef}>
           <Timeline onSeek={seek} peaks={wave.peaks} waveStatus={wave.status} waveMessage={wave.message} />

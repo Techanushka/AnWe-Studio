@@ -29,6 +29,8 @@ export interface EditDoc {
   captions: Readonly<Record<number, string>>;
   trim: Range | null;
   crop: Crop | null;
+  /** [AI] Feature 4: pauses cut by AI cleanup, as source-time ranges (a pause is not a word, so it can't live in `deleted`). */
+  gaps: ReadonlyArray<Range>;
 }
 
 export type EditKind = 'start' | 'cut' | 'restore' | 'trim' | 'caption' | 'crop' | 'saved';
@@ -40,11 +42,16 @@ export interface SerializedDoc {
   captions: Record<string, string>;
   trim: Range | null;
   crop: Crop | null;
+  /** [AI] optional, so projects saved before Feature 4 still load. */
+  gaps?: Range[];
 }
 export interface SavedHistory {
   v: 2; key: string; index: number; nextId: number;
   entries: Array<{ id: number; kind: EditKind; label: string; at: number; doc: SerializedDoc }>;
 }
+
+/** [AI] Feature 4: one accepted cleanup suggestion = words to delete and/or a time range to cut. */
+export interface CleanupItem { words: number[]; gap: Range | null }
 
 /** Record kept in IndexedDB for each project (see services/editorStorage.ts). */
 export interface ProjectRecord {

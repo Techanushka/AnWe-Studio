@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { CSSProperties, KeyboardEvent, RefObject } from 'react';
 import Icon from '../dashboard/Icon.jsx';
+import CaptionOverlay from './CaptionOverlay'; // [AI] Feature 5
 import { useEditorStore } from '../../store/editorStore';
 import { usePlayhead } from '../../store/playheadStore';
 import { usePlaybackEngine } from '../../hooks/usePlaybackEngine';
@@ -98,6 +99,7 @@ export default function VideoPreview({ src, videoRef }: { src: string; videoRef:
     <div className="ed-video card" ref={cardRef} tabIndex={0} onKeyDown={onKeyDown} aria-label="Video preview. Space plays or pauses, arrow keys seek.">
       <div className="ed-stage" style={{ '--ar': ratio } as CSSProperties}>
         <video ref={videoRef} src={src || undefined} playsInline preload="metadata" style={videoStyle} onClick={toggle} />
+        <CaptionOverlay />{/* [AI] Feature 5: live captions on top of the video */}
         {crop && <span className="ed-crop-badge">Crop {crop.aspect}</span>}
         {nothingLeft && <p className="ed-stage-note">Everything is deleted or trimmed. Restore something to preview it.</p>}
       </div>

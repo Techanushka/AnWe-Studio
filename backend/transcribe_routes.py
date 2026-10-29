@@ -18,6 +18,9 @@ from deps import require_user
 log = logging.getLogger("anwe.transcribe")
 router = APIRouter(tags=["transcribe"])
 LANGS = {"english": "en", "hindi": "hi", "spanish": "es", "french": "fr", "german": "de", "portuguese": "pt", "arabic": "ar"}
+# [AI] Optional (Feature 4): a prompt full of "um/uh" nudges Whisper to KEEP fillers instead of dropping them,
+# so the cleanup feature can find them. Only used for English / auto-detect.
+FILLER_PROMPT = "Umm, so, uh, I was like, you know, thinking... hmm, okay."
 _model = None
 
 
@@ -78,6 +81,7 @@ def transcribe(file: UploadFile = File(...), language: str = Form("auto"), _user
                 vad_filter=True, vad_parameters={"min_silence_duration_ms": 500, "speech_pad_ms": 300},
                 condition_on_previous_text=False, word_timestamps=True,
                 no_speech_threshold=0.6, compression_ratio_threshold=2.4, log_prob_threshold=-1.0,
+                initial_prompt=FILLER_PROMPT if lang in (None, "en") else None,  # [AI] keep "um/uh" for Feature 4
             )
             yield ndjson({"type": "info", "duration": info.duration, "language": info.language,
                           "languageProbability": round(info.language_probability, 3)})

@@ -24,6 +24,7 @@ Projects:
 Other:
   GET /exports
   GET /dashboard/analytics; POST /projects/{id}/ai/{summary,chat,edit-proposal,apply-edit}
+  POST /projects/{id}/ai/highlights   (Feature 6)
   POST /transcribe
   GET /health
 
@@ -45,6 +46,7 @@ from auth_routes import router as auth_router
 from db import init_db
 from project_routes import router as project_router
 from ai_routes import router as ai_router
+from highlight_routes import router as highlight_router  # [AI] Feature 6
 from transcribe_routes import (
     get_model,
     router as transcribe_router,
@@ -118,10 +120,11 @@ async def validation_error(
     )
 
 
-# Existing routes â€” keep these for the current auth and Supabase storage.
+# Existing routes - keep these for the current auth and Supabase storage.
 app.include_router(auth_router)
 app.include_router(project_router)
 app.include_router(ai_router)
+app.include_router(highlight_router)  # [AI] Feature 6: POST /projects/{id}/ai/highlights
 app.include_router(transcribe_router)
 
 # Google OAuth routes:
@@ -134,4 +137,3 @@ def health():
         "transcription": whisper_available(),
         "model": config.WHISPER_MODEL,
     }
-

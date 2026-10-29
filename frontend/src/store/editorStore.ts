@@ -1,8 +1,8 @@
 import { create } from 'zustand';
 import {
-  EMPTY_DOC, MIN_TRIM, buildWords, computeCuts, defaultCrop, deletedRuns, deserializeDoc, findMatches, keepRanges, sameDoc, serializeDoc, transcriptKey, wordText
+  EMPTY_DOC, MIN_TRIM, buildWords, computeCuts, defaultCrop, deletedRuns, deserializeDoc, findMatches, keepRanges, mergeRanges, sameDoc, serializeDoc, transcriptKey, wordText // [AI] + mergeRanges
 } from '../utils/editModel';
-import type { Crop, EditDoc, EditKind, HistoryEntry, Match, Range, Run, SavedHistory, Segment, VideoSize, Word } from '../types/editor';
+import type { CleanupItem, Crop, EditDoc, EditKind, HistoryEntry, Match, Range, Run, SavedHistory, Segment, VideoSize, Word } from '../types/editor'; // [AI] + CleanupItem
 import { formatTime } from '../utils/transcript.js';
 
 const span = (a: number, b: number): number[] => {
@@ -16,7 +16,7 @@ const COALESCE_MS = 1500;
 interface Derived { runs: Run[]; cuts: Range[]; keep: Range[] }
 const derive = (words: Word[], doc: EditDoc, duration: number): Derived => {
   const runs = deletedRuns(words, doc.deleted);
-  const cuts = computeCuts(runs, doc.trim, duration);
+  const cuts = computeCuts(runs, doc.trim, duration, doc.gaps); // [AI] + doc.gaps
   return { runs, cuts, keep: keepRanges(cuts, duration) };
 };
 
@@ -58,6 +58,8 @@ export interface EditorState extends ReturnType<typeof fresh> {
   setCaption(i: number, text: string | null): boolean;
   setTrim(trim: Range | null, opts?: { coalesce?: string }): boolean;
   setCrop(crop: Crop | null, opts?: { coalesce?: string }): boolean;
+  /** [AI] Feature 4: apply accepted cleanup suggestions as ONE history step. */
+  applyCleanup(items: CleanupItem[], label: string): boolean;
   // history
   undo(): boolean; redo(): boolean; jumpTo(index: number): void;
   // search
@@ -221,6 +223,19 @@ export const useEditorStore = create<EditorState>()((set, get) => {
         : !s.doc.crop || s.doc.crop.aspect !== crop.aspect ? `Cropped to ${crop.aspect}`
           : 'Adjusted crop';
       return apply('crop', label, { crop }, opts?.coalesce);
+    },
+    // [AI] Feature 4. Uses kind 'cut' so HistoryPanel needs no change.
+    applyCleanup(items, label) {
+      const s = get();
+      const deleted = new Set(s.doc.deleted);
+      const gaps: Range[] = [...s.doc.gaps];
+      for (const it of items) {
+        for (const i of it.words) if (i >= 0 && i < s.words.length) deleted.add(i);
+        if (it.gap) gaps.push({ start: it.gap.start, end: it.gap.end });
+      }
+      const ok = apply('cut', label, { deleted, gaps: mergeRanges(gaps, s.duration) });
+      if (ok) get().notify(`${label}. Ctrl+Z to undo.`);
+      return ok;
     },
 
     // ----- history -----
